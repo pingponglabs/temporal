@@ -25,7 +25,9 @@
 package cassandra
 
 import (
+	"encoding/json"
 	"fmt"
+	"runtime/debug"
 	"time"
 
 	"github.com/gocql/gocql"
@@ -66,6 +68,14 @@ func applyWorkflowMutationBatch(
 	); err != nil {
 		return err
 	}
+
+	// TODO debug log, remove before 1.6.x release
+	debugActivity(
+		workflowMutation.NextEventID,
+		workflowMutation.UpsertActivityInfos,
+		workflowMutation.DeleteActivityInfos,
+	)
+	// TODO debug log, remove before 1.6.x release
 
 	if err := updateActivityInfos(
 		batch,
@@ -187,6 +197,14 @@ func applyWorkflowSnapshotBatchAsReset(
 		return err
 	}
 
+	// TODO debug log, remove before 1.6.x release
+	debugActivity(
+		workflowSnapshot.NextEventID,
+		workflowSnapshot.ActivityInfos,
+		nil,
+	)
+	// TODO debug log, remove before 1.6.x release
+
 	if err := resetActivityInfos(
 		batch,
 		workflowSnapshot.ActivityInfos,
@@ -296,6 +314,14 @@ func applyWorkflowSnapshotBatchAsNew(
 	); err != nil {
 		return err
 	}
+
+	// TODO debug log, remove before 1.6.x release
+	debugActivity(
+		workflowSnapshot.NextEventID,
+		workflowSnapshot.ActivityInfos,
+		nil,
+	)
+	// TODO debug log, remove before 1.6.x release
 
 	if err := updateActivityInfos(
 		batch,
@@ -1014,14 +1040,14 @@ func updateActivityInfos(
 	runID string,
 ) error {
 
-	for _, a := range activityInfos {
-		activityBlob, err := serialization.ActivityInfoToBlob(a)
+	for _, activityInfo := range activityInfos {
+		activityBlob, err := serialization.ActivityInfoToBlob(activityInfo)
 		if err != nil {
 			return p.NewSerializationError(fmt.Sprintf("activity info serialization error: %v", err))
 		}
 
 		batch.Query(templateUpdateActivityInfoQuery,
-			a.ScheduleId,
+			activityInfo.ScheduleId,
 			activityBlob.Data,
 			activityBlob.EncodingType.String(),
 			shardID,
@@ -1605,3 +1631,42 @@ func isThrottlingError(err error) bool {
 	}
 	return false
 }
+
+// TODO debug log, remove before 1.6.x release
+func debugActivity(
+	nextEventID int64,
+	upsertActivityInfos []*persistencespb.ActivityInfo,
+	deleteActivityInfos []int64,
+) {
+	logError := false
+	for _, activity := range upsertActivityInfos {
+		if activity.ScheduleId <= 0 || activity.ScheduleId >= nextEventID {
+			logError = true
+		}
+	}
+	for _, activityScheduleID := range deleteActivityInfos {
+		if activityScheduleID <= 0 || activityScheduleID >= nextEventID {
+			logError = true
+		}
+	}
+	if logError {
+		fmt.Println("#######")
+		fmt.Println("####### upsert request")
+		fmt.Printf("%v\n", prettyPrint(upsertActivityInfos))
+		fmt.Println("####### upsert request")
+		fmt.Println("####### delete request")
+		fmt.Printf("%v\n", prettyPrint(deleteActivityInfos))
+		fmt.Println("####### delete request")
+		fmt.Println("####### stack trace")
+		fmt.Println(string(debug.Stack()))
+		fmt.Println("####### stack trace")
+		fmt.Println("#######")
+	}
+}
+
+func prettyPrint(input interface{}) string {
+	binary, _ := json.MarshalIndent(input, "", "  ")
+	return string(binary)
+}
+
+// TODO debug log, remove before 1.6.x release
