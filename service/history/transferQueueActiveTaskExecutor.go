@@ -1246,6 +1246,14 @@ func (t *transferQueueActiveTaskExecutor) startWorkflowWithRetry(
 	var err error
 	op := func() error {
 		response, err = t.historyClient.StartWorkflowExecution(ctx, request)
+		if err != nil {
+			t.logger.Error("Failed to start child workflow execution",
+				tag.WorkflowNamespaceID(task.GetNamespaceId()),
+				tag.WorkflowID(task.GetWorkflowId()),
+				tag.WorkflowRunID(task.GetRunId()),
+				tag.Error(err),
+			)
+		}
 		return err
 	}
 
