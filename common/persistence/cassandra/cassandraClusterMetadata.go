@@ -25,7 +25,6 @@
 package cassandra
 
 import (
-	"fmt"
 	"net"
 	"strings"
 	"time"
@@ -33,10 +32,8 @@ import (
 	"github.com/pborman/uuid"
 	"go.temporal.io/api/serviceerror"
 
-	"go.temporal.io/server/common/cassandra"
 	"go.temporal.io/server/common/log"
 	p "go.temporal.io/server/common/persistence"
-	"go.temporal.io/server/common/service/config"
 )
 
 const constMetadataPartition = 0
@@ -89,20 +86,10 @@ type (
 var _ p.ClusterMetadataStore = (*cassandraClusterMetadata)(nil)
 
 // newClusterMetadataInstance is used to create an instance of ClusterMetadataStore implementation
-func newClusterMetadataInstance(cfg config.Cassandra, logger log.Logger) (p.ClusterMetadataStore, error) {
-	cluster, err := cassandra.NewCassandraCluster(cfg)
-	if err != nil {
-		return nil, fmt.Errorf("create cassandra cluster from config: %w", err)
-	}
-	cluster.ProtoVersion = cassandraProtoVersion
-	cluster.Consistency = cfg.Consistency.GetConsistency()
-	cluster.SerialConsistency = cfg.Consistency.GetSerialConsistency()
-	cluster.Timeout = defaultSessionTimeout
-
-	session, err := cluster.CreateSession()
-	if err != nil {
-		return nil, fmt.Errorf("create cassandra session from cluster: %w", err)
-	}
+func newClusterMetadataInstance(
+	session *gocql.Session,
+	logger log.Logger,
+) (p.ClusterMetadataStore, error) {
 
 	return &cassandraClusterMetadata{
 		cassandraStore: &cassandraStore{session: session, logger: logger},
