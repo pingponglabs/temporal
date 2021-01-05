@@ -723,6 +723,10 @@ type (
 		cassandraStore
 		shardID            int32
 		currentClusterName string
+
+		// TODO DEBUG
+		isDebug bool
+		// TODO DEBUG
 	}
 )
 
@@ -750,6 +754,10 @@ func NewWorkflowExecutionPersistence(
 	return &cassandraPersistence{
 		cassandraStore: cassandraStore{session: session, logger: logger},
 		shardID:        shardID,
+
+		// TODO DEBUG
+		isDebug: common.IsDebugMode(),
+		// TODO DEBUG
 	}, nil
 }
 
@@ -960,10 +968,11 @@ func (d *cassandraPersistence) CreateWorkflowExecution(
 	}()
 
 	if err != nil {
-		d.logger.Error("####### QUERY ERROR")
-		d.logger.Error(prettyPrint(batch.Entries), tag.Error(err))
-		d.logger.Error("####### QUERY ERROR")
-
+		if d.isDebug {
+			d.logger.Error("####### QUERY ERROR")
+			d.logger.Error(prettyPrint(batch.Entries), tag.Error(err))
+			d.logger.Error("####### QUERY ERROR")
+		}
 		if isTimeoutError(err) {
 			// Write may have succeeded, but we don't know
 			// return this info to the caller so they have the option of trying to find out by executing a read
@@ -1357,9 +1366,11 @@ func (d *cassandraPersistence) UpdateWorkflowExecution(request *p.InternalUpdate
 	}()
 
 	if err != nil {
-		d.logger.Error("####### QUERY ERROR")
-		d.logger.Error(prettyPrint(batch.Entries), tag.Error(err))
-		d.logger.Error("####### QUERY ERROR")
+		if d.isDebug {
+			d.logger.Error("####### QUERY ERROR")
+			d.logger.Error(prettyPrint(batch.Entries), tag.Error(err))
+			d.logger.Error("####### QUERY ERROR")
+		}
 
 		if isTimeoutError(err) {
 			// Write may have succeeded, but we don't know
@@ -1662,9 +1673,11 @@ func (d *cassandraPersistence) ConflictResolveWorkflowExecution(request *p.Inter
 	}()
 
 	if err != nil {
-		d.logger.Error("####### QUERY ERROR")
-		d.logger.Error(prettyPrint(batch.Entries), tag.Error(err))
-		d.logger.Error("####### QUERY ERROR")
+		if d.isDebug {
+			d.logger.Error("####### QUERY ERROR")
+			d.logger.Error(prettyPrint(batch.Entries), tag.Error(err))
+			d.logger.Error("####### QUERY ERROR")
+		}
 
 		if isTimeoutError(err) {
 			// Write may have succeeded, but we don't know

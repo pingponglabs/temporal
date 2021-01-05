@@ -29,6 +29,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/gocql/gocql"
 	"github.com/pborman/uuid"
 	"go.temporal.io/api/serviceerror"
 
