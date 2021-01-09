@@ -69,27 +69,47 @@ func NewFactory(cfg config.Cassandra, clusterName string, logger log.Logger) *Fa
 
 // NewTaskStore returns a new task store
 func (f *Factory) NewTaskStore() (p.TaskStore, error) {
-	return newTaskPersistence(f.session, f.logger)
+	session, err := NewSession(f.cfg)
+	if err != nil {
+		f.logger.Fatal("unable to initialize cassandra session", tag.Error(err))
+	}
+	return newTaskPersistence(session, f.logger)
 }
 
 // NewShardStore returns a new shard store
 func (f *Factory) NewShardStore() (p.ShardStore, error) {
-	return newShardPersistence(f.session, f.clusterName, f.logger)
+	session, err := NewSession(f.cfg)
+	if err != nil {
+		f.logger.Fatal("unable to initialize cassandra session", tag.Error(err))
+	}
+	return newShardPersistence(session, f.clusterName, f.logger)
 }
 
 // NewHistoryStore returns a new history store
 func (f *Factory) NewHistoryStore() (p.HistoryStore, error) {
-	return newHistoryPersistence(f.session, f.logger)
+	session, err := NewSession(f.cfg)
+	if err != nil {
+		f.logger.Fatal("unable to initialize cassandra session", tag.Error(err))
+	}
+	return newHistoryPersistence(session, f.logger)
 }
 
 // NewMetadataStore returns a metadata store that understands only v2
 func (f *Factory) NewMetadataStore() (p.MetadataStore, error) {
-	return newMetadataPersistence(f.session, f.clusterName, f.logger)
+	session, err := NewSession(f.cfg)
+	if err != nil {
+		f.logger.Fatal("unable to initialize cassandra session", tag.Error(err))
+	}
+	return newMetadataPersistence(session, f.clusterName, f.logger)
 }
 
 // NewClusterMetadataStore returns a metadata store
 func (f *Factory) NewClusterMetadataStore() (p.ClusterMetadataStore, error) {
-	return newClusterMetadataInstance(f.session, f.logger)
+	session, err := NewSession(f.cfg)
+	if err != nil {
+		f.logger.Fatal("unable to initialize cassandra session", tag.Error(err))
+	}
+	return newClusterMetadataInstance(session, f.logger)
 }
 
 // NewExecutionStore returns an ExecutionStore for a given shardID
@@ -103,12 +123,20 @@ func (f *Factory) NewExecutionStore(shardID int32) (p.ExecutionStore, error) {
 
 // NewVisibilityStore returns a visibility store
 func (f *Factory) NewVisibilityStore() (p.VisibilityStore, error) {
-	return newVisibilityPersistence(f.session, f.logger)
+	session, err := NewSession(f.cfg)
+	if err != nil {
+		f.logger.Fatal("unable to initialize cassandra session", tag.Error(err))
+	}
+	return newVisibilityPersistence(session, f.logger)
 }
 
 // NewQueue returns a new queue backed by cassandra
 func (f *Factory) NewQueue(queueType p.QueueType) (p.Queue, error) {
-	return newQueue(f.session, f.logger, queueType)
+	session, err := NewSession(f.cfg)
+	if err != nil {
+		f.logger.Fatal("unable to initialize cassandra session", tag.Error(err))
+	}
+	return newQueue(session, f.logger, queueType)
 }
 
 // Close closes the factory
@@ -135,7 +163,11 @@ func (f *Factory) executionStoreFactory() (*executionStoreFactory, error) {
 		return f.execStoreFactory, nil
 	}
 
-	factory, err := newExecutionStoreFactory(f.session, f.logger)
+	session, err := NewSession(f.cfg)
+	if err != nil {
+		f.logger.Fatal("unable to initialize cassandra session", tag.Error(err))
+	}
+	factory, err := newExecutionStoreFactory(session, f.logger)
 	if err != nil {
 		return nil, err
 	}
