@@ -127,12 +127,18 @@ func (h *cassandraHistoryV2Persistence) AppendHistoryNodes(
 			return convertCommonErrors("AppendHistoryNodes", err)
 		}
 
-		batch := h.session.NewBatch(gocql.LoggedBatch)
+		batch := h.session.NewBatch(gocql.UnloggedBatch)
 		batch.Query(v2templateInsertTree,
 			branchInfo.TreeId, branchInfo.BranchId, treeInfoDataBlob.Data, treeInfoDataBlob.EncodingType.String())
 		batch.Query(v2templateUpsertData,
 			branchInfo.TreeId, branchInfo.BranchId, request.NodeID, request.TransactionID, request.Events.Data, request.Events.EncodingType.String())
 		err = h.session.ExecuteBatch(batch)
+
+		if err != nil && h.isDebug {
+			h.logger.Info(fmt.Sprintf("####### BATCH QUERY WRITE: %v - %v, %v, %v",
+				branchInfo.TreeId, branchInfo.BranchId,
+				prettyPrint(batch.Entries), err))
+		}
 
 		// TODO DEBUG
 		if err == nil && h.isDebug {
