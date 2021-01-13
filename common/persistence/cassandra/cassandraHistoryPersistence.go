@@ -94,7 +94,7 @@ func newHistoryPersistence(
 			logger:  logger,
 		},
 		// TODO DEBUG
-		isDebug: common.IsDebugMode(),
+		isDebug: true,
 		// TODO DEBUG
 	}, nil
 }
