@@ -114,7 +114,6 @@ func (h *cassandraHistoryV2Persistence) AppendHistoryNodes(
 		}
 	}
 
-	var err error
 	if request.IsNewBranch {
 		h.sortAncestors(branchInfo.Ancestors)
 		treeInfoDataBlob, err := serialization.HistoryTreeInfoToBlob(&persistencespb.HistoryTreeInfo{
@@ -167,12 +166,15 @@ func (h *cassandraHistoryV2Persistence) AppendHistoryNodes(
 		}
 		// TODO DEBUG
 
-	} else {
-		query := h.session.Query(v2templateUpsertData,
-			branchInfo.TreeId, branchInfo.BranchId, request.NodeID, request.TransactionID, request.Events.Data, request.Events.EncodingType.String())
-		err = query.Exec()
+		if err != nil {
+			return convertCommonErrors("AppendHistoryNodes", err)
+		}
+		return nil
 	}
 
+	query := h.session.Query(v2templateUpsertData,
+		branchInfo.TreeId, branchInfo.BranchId, request.NodeID, request.TransactionID, request.Events.Data, request.Events.EncodingType.String())
+	err := query.Exec()
 	if err != nil {
 		return convertCommonErrors("AppendHistoryNodes", err)
 	}
