@@ -424,6 +424,7 @@ func (tm *TaskMatcher) fwdrAddReqTokenC() <-chan *ForwarderReqToken {
 func (tm *TaskMatcher) ratelimit(ctx context.Context) (quotas.Reservation, error) {
 	select {
 	case <-ctx.Done():
+		tm.scope().IncCounter(metrics.SyncThrottlePerTaskQueueCounterCase1)
 		return nil, ctx.Err()
 	default:
 	}
@@ -431,6 +432,7 @@ func (tm *TaskMatcher) ratelimit(ctx context.Context) (quotas.Reservation, error
 	deadline, ok := ctx.Deadline()
 	if !ok {
 		if err := tm.rateLimiter.Wait(ctx); err != nil {
+			tm.scope().IncCounter(metrics.SyncThrottlePerTaskQueueCounterCase2)
 			return nil, err
 		}
 		return nil, nil
@@ -442,6 +444,7 @@ func (tm *TaskMatcher) ratelimit(ctx context.Context) (quotas.Reservation, error
 		if rsv.OK() { // if we were indeed given a reservation, return it before we bail out
 			rsv.Cancel()
 		}
+		tm.scope().IncCounter(metrics.SyncThrottlePerTaskQueueCounterCase3)
 		return nil, errTaskqueueThrottled
 	}
 

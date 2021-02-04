@@ -1916,6 +1916,10 @@ const (
 	RemoteToLocalMatchPerTaskQueueCounter
 	RemoteToRemoteMatchPerTaskQueueCounter
 
+	SyncThrottlePerTaskQueueCounterCase1
+	SyncThrottlePerTaskQueueCounterCase2
+	SyncThrottlePerTaskQueueCounterCase3
+
 	NumMatchingMetrics
 )
 
@@ -2337,6 +2341,10 @@ var MetricDefs = map[ServiceIdx]map[int]metricDefinition{
 		LocalToRemoteMatchPerTaskQueueCounter:     {metricName: "local_to_remote_matches_per_tl", metricRollupName: "local_to_remote_matches"},
 		RemoteToLocalMatchPerTaskQueueCounter:     {metricName: "remote_to_local_matches_per_tl", metricRollupName: "remote_to_local_matches"},
 		RemoteToRemoteMatchPerTaskQueueCounter:    {metricName: "remote_to_remote_matches_per_tl", metricRollupName: "remote_to_remote_matches"},
+
+		SyncThrottlePerTaskQueueCounterCase1: {metricName: "sync_throttle_count_per_tl_c1", metricRollupName: "sync_throttle_count_c1"},
+		SyncThrottlePerTaskQueueCounterCase2: {metricName: "sync_throttle_count_per_tl_c2", metricRollupName: "sync_throttle_count_c2"},
+		SyncThrottlePerTaskQueueCounterCase3: {metricName: "sync_throttle_count_per_tl_c3", metricRollupName: "sync_throttle_count_c3"},
 	},
 	Worker: {
 		ReplicatorMessages:                            {metricName: "replicator_messages"},
